@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>User statistics</title>
+		<style>
+			body{background-color:#eee}
+			.chart{max-width:820px;padding-right:20px;margin:20px auto;margin-bottom:40px; background-color:#fff; border-radius:12px;}
+			.chartWide{max-width:1240px;padding-right:20px;margin:20px auto;margin-bottom:40px; background-color:#fff; border-radius:12px;}
+		</style>
+	</head>
+	<body>
+		<div class="chart"><canvas id="totalUsersPerYearChart"></canvas></div>
+		<div class="chart"><canvas id="totalUsersPerMonthChart"></canvas></div>
+		<div class="chart"><canvas id="newUsersPerYearChart"></canvas></div>
+		<div class="chart"><canvas id="newUsersPerMonthChart"></canvas></div>
+		<div class="chart"><canvas id="userAgeChart"></canvas></div>
+		<div class="chart"><canvas id="loginsPerYearChart"></canvas></div>
+		<div class="chart"><canvas id="loginsPerMonthChart"></canvas></div>
+		<div class="chart"><canvas id="percentLoginsPerYearChart"></canvas></div>
+		<div class="chart"><canvas id="percentLoginsPerMonthChart"></canvas></div>
+		<div class="chart"><canvas id="abandonmentPerMonthChart"></canvas></div>
+		<div class="chart"><canvas id="inactiveSixMonthsPerYearChart"></canvas></div>
+		<div class="chart"><canvas id="activityCohortChart"></canvas></div>
+		<div class="chart"><canvas id="returningUsersChart"></canvas></div>
+		<div class="chartWide"><canvas id="retentionChart"></canvas></div>
+		<div class="chart"><canvas id="frictionChart"></canvas></div>
+		<div class="chart"><canvas id="loginFrequencyChart"></canvas></div>
+	</body>
+	<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1"></script>
+	<script src="https://cdn.jsdelivr.net/npm/chartjs-chart-matrix@3.0.0/dist/chartjs-chart-matrix.min.js"></script>
+	<script>
+		const data = JSON.parse('{{CHARTDATA}}');
+
+// ===================================================================
+// Helper functions --------------------------------------------------
+		function getBarChartOptions(title, isStackedBar=true, shouldShowLegend=true, xAxisTitle='') {
+			return {
+				responsive: true,
+				plugins: {
+					legend: {display: shouldShowLegend,position: 'bottom',},
+					title: {display: true,text: title}
+				},
+				scales: {
+					x: {
+						grid: {display: false},
+						stacked: isStackedBar,
+						title: {display: true,text: xAxisTitle}
+					},
+					y: {
+						stacked: isStackedBar,
+						title: {display: true,text: ''},
+						beginAtZero: true,
+					}
+				}
+			}
+		}
+
+
+// ===================================================================
+// Total users per year chart--------------------------------------------------
+		new Chart(document.getElementById('totalUsersPerYearChart'), {
+			type: 'bar',
+			data: {
+				labels: data.totalUsersPerYearChart.labels,
+				datasets: [{
+					label: 'Unverified',
+					data: data.totalUsersPerYearChart.unverifiedData,
+					backgroundColor: 'rgba(255, 99, 132, 0.7)',
+				},
+				{
+					label: 'Verified',
+					data: data.totalUsersPerYearChart.verifiedData,
+					backgroundColor: 'rgba(75, 192, 192, 0.7)',
+				}]
+			},
+			options: getBarChartOptions('Total users per year', true)
+		});
+
+// Total users per month chart--------------------------------------------------
+		new Chart(document.getElementById('totalUsersPerMonthChart'), {
+			type: 'bar',
+			data: {
+				labels: data.totalUsersPerMonthChart.labels,
+				datasets: [{
+					label: 'Unverified',
+					data: data.totalUsersPerMonthChart.unverifiedData,
+					backgroundColor: 'rgba(255, 99, 132, 0.7)',
+				},
+				{
+					label: 'Verified',
+					data: data.totalUsersPerMonthChart.verifiedData,
+					backgroundColor: 'rgba(75, 192, 192, 0.7)',
+				}]
+			},
+			options: getBarChartOptions('Total users per month', true)
+		});
+
+// New users per year chart--------------------------------------------------
+		new Chart(document.getElementById('newUsersPerYearChart'), {
+			type: 'bar',
+			data: {
+				labels: data.newUsersPerYearChart.labels,
+				datasets: [{
+					label: 'Unverified',
+					data: data.newUsersPerYearChart.unverifiedData,
+					backgroundColor: 'rgba(255, 99, 132, 0.7)',
+				},
+				{
+					label: 'Verified',
+					data: data.newUsersPerYearChart.verifiedData,
+					backgroundColor: 'rgba(75, 192, 192, 0.7)',
+				}]
+			},
+			options: getBarChartOptions('New users per year', true)
+		});
+
+// New users per month chart--------------------------------------------------
+		new Chart(document.getElementById('newUsersPerMonthChart'), {
+			type: 'bar',
+			data: {
+				labels: data.newUsersPerMonthChart.labels,
+				datasets: [{
+					label: 'Unverified',
+					data: data.newUsersPerMonthChart.unverifiedData,
+					backgroundColor: 'rgba(255, 99, 132, 0.7)',
+				},
+				{
+					label: 'Verified',
+					data: data.newUsersPerMonthChart.verifiedData,
+					backgroundColor: 'rgba(75, 192, 192, 0.7)',
+				}]
+			},
+			options: getBarChartOptions('New users per month', true)
+		});
+
+// User age chart --------------------------------------------------
+		new Chart(document.getElementById('userAgeChart'), {
+			type: 'bar',
+			data: {
+				labels: data.userAgeChart.labels,
+				datasets: [{
+					label: 'Unverified',
+					data: data.userAgeChart.unverifiedData,
+					backgroundColor: 'rgba(255, 99, 132, 0.7)',
+				},
+				{
+					label: 'Verified',
+					data: data.userAgeChart.verifiedData,
+					backgroundColor: 'rgba(75, 192, 192, 0.7)',
+				}]
+			},
+			options: getBarChartOptions('Number of years since user registered', true)
+		});
+
+// Logins per year chart --------------------------------------------------
+		new Chart(document.getElementById('loginsPerYearChart'), {
+			type: 'bar',
+			data: {
+				labels: data.loginsPerYearChart.labels,
+				datasets: [{
+					data: data.loginsPerYearChart.data,
+					backgroundColor: 'rgba(75, 192, 192, 0.7)',
+				}]
+			},
+			options: getBarChartOptions('Logins per year', false, false)
+		});
+
+// Logins per month chart --------------------------------------------------
+		new Chart(document.getElementById('loginsPerMonthChart'), {
+			type: 'bar',
+			data: {
+				labels: data.loginsPerMonthChart.labels,
+				datasets: [{
+					data: data.loginsPerMonthChart.data,
+					backgroundColor: 'rgba(75, 192, 192, 0.7)',
+				}]
+			},
+			options: getBarChartOptions('Logins per month', false, false)
+		});
+
+// Percent logins per year chart --------------------------------------------------
+		new Chart(document.getElementById('percentLoginsPerYearChart'), {
+			type: 'bar',
+			data: {
+				labels: data.percentLoginsPerYearChart.labels,
+				datasets: [{
+					data: data.percentLoginsPerYearChart.data,
+					backgroundColor: 'rgba(75, 192, 192, 0.7)',
+				}]
+			},
+			options: getBarChartOptions('Percent logins per year', false, false)
+		});
+
+// Percent logins per month chart --------------------------------------------------
+		new Chart(document.getElementById('percentLoginsPerMonthChart'), {
+			type: 'bar',
+			data: {
+				labels: data.percentLoginsPerMonthChart.labels,
+				datasets: [{
+					data: data.percentLoginsPerMonthChart.data,
+					backgroundColor: 'rgba(75, 192, 192, 0.7)',
+				}]
+			},
+			options: getBarChartOptions('Percent logins per month', false, false)
+		});
+
+// Abandonment per month chart --------------------------------------------------
+		new Chart(document.getElementById('abandonmentPerMonthChart'), {
+			type: 'bar',
+			data: {
+				labels: data.abandonmentPerMonthChart.labels,
+				datasets: [{
+					label: 'Unverified',
+					data: data.abandonmentPerMonthChart.unverifiedData,
+					backgroundColor: 'rgba(255, 99, 132, 0.7)',
+				},
+				{
+					label: 'Verified',
+					data: data.abandonmentPerMonthChart.verifiedData,
+					backgroundColor: 'rgba(75, 192, 192, 0.7)',
+				}]
+			},
+			options: getBarChartOptions('Number of users who haven\'t logged in for months', true, true, 'Number of months')
+		});
+
+// Inactive for six months, per year chart --------------------------------------------------
+new Chart(document.getElementById('inactiveSixMonthsPerYearChart'), {
+			type: 'bar',
+			data: {
+				labels: data.inactiveSixMonthsPerYearChart.labels,
+				datasets: [{
+					label: 'Unverified',
+					data: data.inactiveSixMonthsPerYearChart.unverifiedData,
+					backgroundColor: 'rgba(255, 99, 132, 0.7)',
+				},
+				{
+					label: 'Verified',
+					data: data.inactiveSixMonthsPerYearChart.verifiedData,
+					backgroundColor: 'rgba(75, 192, 192, 0.7)',
+				}]
+			},
+			options: getBarChartOptions('Number of users who haven\'t logged in for six months, per year', true, true, '')
+		});
+
+// Logins cohort chart --------------------------------------------------
+new Chart(document.getElementById('activityCohortChart'), {
+			type: 'bar',
+			data: {
+				labels: data.activityCohortChart.labels,
+				datasets: [{
+					label: 'Unverified',
+					data: data.activityCohortChart.unverifiedData,
+					backgroundColor: 'rgba(255, 99, 132, 0.7)',
+				},
+				{
+					label: 'Verified',
+					data: data.activityCohortChart.verifiedData,
+					backgroundColor: 'rgba(75, 192, 192, 0.7)',
+				}]
+			},
+			options: getBarChartOptions('Users grouped by login count for the past year', true, true, 'Number of logins')
+		});
+
+// Users returning after 6 months chart --------------------------------------------------
+new Chart(document.getElementById('returningUsersChart'), {
+			type: 'bar',
+			data: {
+				labels: data.returningUsersChart.labels,
+				datasets: [{
+					label: 'Unverified',
+					data: data.returningUsersChart.unverifiedData,
+					backgroundColor: 'rgba(255, 99, 132, 0.7)',
+				},
+				{
+					label: 'Verified',
+					data: data.returningUsersChart.verifiedData,
+					backgroundColor: 'rgba(75, 192, 192, 0.7)',
+				}]
+			},
+			options: getBarChartOptions('Users returning after at least a year absent', true, true, '')
+		});
+
+// User retention --------------------------------------------------
+new Chart(document.getElementById('retentionChart'), {
+	type: 'matrix',
+	plugins: [{
+		beforeInit: (chart) => {
+			const cohortCount = data.retentionChart.xLabels.length;
+			const rowHeight = 20;
+			chart.canvas.parentElement.style.height = (cohortCount * rowHeight + 100) + 'px';
+		},
+		afterDatasetsDraw: (chart) => {
+			const {ctx, data} = chart;
+			ctx.save();
+			ctx.font = '9px sans-serif';
+			ctx.textAlign = 'center';
+			ctx.textBaseline = 'middle';
+			const meta = chart.getDatasetMeta(0);
+			meta.data.forEach((rectangle, index) => {
+				const item = data.datasets[0].data[index];
+				if (item && item.v !== undefined) {
+					const centerX = rectangle.x + (rectangle.width / 2);
+					const centerY = rectangle.y + (rectangle.height / 2);
+					ctx.fillStyle = item.v > 50 ? '#fff' : '#000';
+					ctx.fillText(item.v, centerX, centerY);
+				}
+			});
+			ctx.restore();
+		}
+	}],
+	data: {
+		datasets: [{
+			label: 'Retention %',
+			data: data.retentionChart.matrixData.map(item => ({
+				x: item.y, // Month digit
+				y: item.x, // Cohort string
+				v: item.v
+			})),
+			backgroundColor(context) {
+				const item = context.dataset.data[context.dataIndex];
+				if (!item || item.v === undefined) return 'transparent';
+				return `rgba(75, 192, 192, ${item.v / 100})`;
+			},
+			width: ({chart}) => chart.chartArea ? chart.chartArea.width / data.retentionChart.yLabels.length : 0,
+			height: ({chart}) => chart.chartArea ? chart.chartArea.height / data.retentionChart.xLabels.length : 0
+		}]
+	},
+	options: {
+		maintainAspectRatio: false,
+		plugins: {
+			legend: false,
+			title: { display: true, text: 'Retention heatmap: Percent users logging in in the months after registration' },
+			tooltip: {
+				callbacks: {
+					label: (context) => {
+						const item = context.dataset.data[context.dataIndex];
+						return `Cohort ${item.y} | Month ${item.x}: ${item.v}%`;
+					}
+				}
+			}
+		},
+		scales: {
+			x: {
+				type: 'category',
+				labels: data.retentionChart.yLabels,
+				grid: { display: false },
+				title: { display: true, text: 'Months since registration' }
+			},
+			y: {
+				type: 'category',
+				labels: data.retentionChart.xLabels,
+				offset: true,
+				grid: { display: false }
+			}
+		}
+	}
+});
+
+// Friction chart--------------------------------------------------
+		new Chart(document.getElementById('frictionChart'), {
+			type: 'bar',
+			data: {
+				labels: data.frictionChart.labels,
+				datasets: [{
+					label: 'Unverified',
+					data: data.frictionChart.unverifiedData,
+					backgroundColor: 'rgba(255, 99, 132, 0.7)',
+				},
+				{
+					label: 'Verified',
+					data: data.frictionChart.verifiedData,
+					backgroundColor: 'rgba(75, 192, 192, 0.7)',
+				}]
+			},
+			options: getBarChartOptions('Friction (time until first login)', true)
+		});
+
+// Login frequency chart--------------------------------------------------
+		new Chart(document.getElementById('loginFrequencyChart'), {
+			type: 'bar',
+			data: {
+				labels: data.loginFrequencyChart.labels,
+				datasets: [{
+					label: 'Unverified',
+					data: data.loginFrequencyChart.unverifiedData,
+					backgroundColor: 'rgba(255, 99, 132, 0.7)',
+				},
+				{
+					label: 'Verified',
+					data: data.loginFrequencyChart.verifiedData,
+					backgroundColor: 'rgba(75, 192, 192, 0.7)',
+				}]
+			},
+			options: getBarChartOptions('Login frequency (number of days users logged in for the past month)', true)
+		});
+
+
+	</script>
+</html>
