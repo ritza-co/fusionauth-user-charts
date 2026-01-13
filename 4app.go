@@ -1,4 +1,4 @@
-// docker run --init  -it  --rm --platform linux/amd64 --name "app" -p 7777:7777 --network faNetwork -v .:/app -v ./gocache:/go/pkg -v ./buildcache:/root/.cache/go-build -w /app golang:1.25-bookworm sh -c "go mod tidy && go fmt 4app.go && go run 4app.go"
+// docker run --init  -it  --rm --platform linux/amd64 --name "app" -p 7777:7777 -v .:/app -v ./gocache:/go/pkg -v ./buildcache:/root/.cache/go-build -w /app golang:1.25-bookworm sh -c "go mod tidy && go fmt 4app.go && go run 4app.go"
 
 package main
 
@@ -19,6 +19,7 @@ import (
 func main() {
 	users := getUsersFromFile()
 	chartData := getChartData(users)
+	fmt.Println("Charts created")
 	http.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
 		page := getPage(chartData)
 		fmt.Fprint(writer, page)
