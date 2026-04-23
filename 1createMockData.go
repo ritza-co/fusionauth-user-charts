@@ -8,15 +8,17 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 )
 
-const fusionauthUrl = "http://fa:9011/api/user/registration"
-const apiKey = "33052c8a-c283-4e96-9d2a-eb1215c69f8f-not-for-prod"
-const applicationId = "e9fdb985-9173-4e01-9d73-ac2d60d1dc8e"
+var fusionauthUrl = os.Getenv("FUSIONAUTH_URL")
+var apiKey = os.Getenv("API_KEY")
+var applicationId = os.Getenv("APPLICATION_ID")
 const numberOfUsersToCreate = 1000
 
 func main() {
 	client := &http.Client{}
+	registrationUrl := fusionauthUrl + "/api/user/registration"
 	for i := 1; i <= numberOfUsersToCreate; i++ {
 		email := fmt.Sprintf("%d@example.com", i)
 		requestBody := RegistrationRequest{
@@ -29,7 +31,7 @@ func main() {
 			},
 		}
 		jsonData, _ := json.Marshal(requestBody)
-		request, _ := http.NewRequest("POST", fusionauthUrl, bytes.NewBuffer(jsonData))
+		request, _ := http.NewRequest("POST", registrationUrl, bytes.NewBuffer(jsonData))
 		request.Header.Set("Authorization", apiKey)
 		request.Header.Set("Content-Type", "application/json")
 		response, err := client.Do(request)

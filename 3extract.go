@@ -11,9 +11,9 @@ import (
 	"sort"
 )
 
-const applicationId = "e9fdb985-9173-4e01-9d73-ac2d60d1dc8e"
-const apiKey = "33052c8a-c283-4e96-9d2a-eb1215c69f8f-not-for-prod"
-const faUrl = "http://fa:9011"
+var applicationId = os.Getenv("APPLICATION_ID")
+var apiKey = os.Getenv("API_KEY")
+var faUrl = os.Getenv("FUSIONAUTH_URL")
 
 func main() {
 	var faUserResp FaUserResponse
