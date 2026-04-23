@@ -4,22 +4,22 @@ A pipeline that creates mock FusionAuth user data, extracts it via the FusionAut
 
 ## Scripts
 
-### 1createMockData.go
+### createMockData.go
 Registers 1000 mock users against the FusionAuth API with sequential email addresses (`1@example.com`, `2@example.com`, etc.).
 
-### 2createMockData.sql
+### createMockData.sql
 Runs directly against the FusionAuth PostgreSQL database to make the mock data more realistic:
 - Randomizes registration dates between 2015 and 2025.
 - Sets 5% of users as unverified.
 - Generates random login records distributed between each user's registration date and end of 2025.
 - Removes logins for unverified users.
 
-### 3extract.go
+### extractUsers.go
 Queries the FusionAuth API to fetch all users and their login records, then writes two JSON files:
 - `faUsers.json` — raw API response.
 - `users.json` — simplified extract with id, email, verification status, registration date, and sorted login dates.
 
-### 4app.go
+### charts.go
 Reads `users.json` and computes 16 chart datasets covering:
 - Total and new users (yearly/monthly), split by verified/unverified.
 - User account age distribution.
@@ -34,8 +34,8 @@ Reads `users.json` and computes 16 chart datasets covering:
 
 Serves the results as an HTML page on port 7777.
 
-### 5page.html
-Single-page dashboard rendered with Chart.js. Displays all 16 charts using data injected by `4app.go`. Includes a retention heatmap via the `chartjs-chart-matrix` plugin.
+### charts.html
+Single-page dashboard rendered with Chart.js. Displays all 16 charts using data injected by `charts.go`. Includes a retention heatmap via the `chartjs-chart-matrix` plugin.
 
 ## Running
 

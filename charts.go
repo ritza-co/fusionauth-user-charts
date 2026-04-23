@@ -1,4 +1,4 @@
-// docker run --init  -it  --rm --platform linux/amd64 --name "app" -p 7777:7777 -v .:/app -v ./gocache:/go/pkg -v ./buildcache:/root/.cache/go-build -w /app golang:1.25-bookworm sh -c "go mod tidy && go fmt 4app.go && go run 4app.go"
+// docker run --init  -it  --rm --platform linux/amd64 --name "app" -p 7777:7777 -v .:/app -v ./gocache:/go/pkg -v ./buildcache:/root/.cache/go-build -w /app golang:1.25-bookworm sh -c "go mod tidy && go fmt charts.go && go run charts.go"
 
 package main
 
@@ -87,13 +87,15 @@ func addDeduplicatedLoginDates(users []User) {
 }
 
 func getPage(chartData ChartResult) string {
-	htmlBytes, _ := os.ReadFile("5page.html")
+	htmlBytes, _ := os.ReadFile("charts.html")
 	html := string(htmlBytes)
 	chartJson, _ := json.Marshal(chartData)
 	return strings.Replace(html, "{{CHARTDATA}}", string(chartJson), 1)
 }
 
 func getChartData(users []User) ChartResult {
+	// now := time.Date(2025, 12, 31, 23, 59, 59, 0, time.UTC)
+	// thisYear := 2025
 	now := time.Now()
 	thisYear := now.Year()
 	minYear := getMinYear(users, thisYear)
@@ -339,7 +341,8 @@ func calculateInactiveSixMonthsPerYearChart(users []User, minYear int, maxYear i
 
 func calculateActivityCohortChart(users []User) ChartData {
 	chart := ChartData{Labels: []string{"0", "<= 4", "> 4"}, VerifiedData: make([]int, 3), UnverifiedData: make([]int, 3)}
-	now := time.Now()
+	// now := time.Date(2025, 12, 31, 23, 59, 59, 0, time.UTC)
+	now := time.Now() todo
 	oneYearAgo := now.AddDate(-1, 0, 0)
 	for _, user := range users {
 		loginsInPastYearCount := len(lo.Filter(user.LoginDates, func(loginTimestamp time.Time, _ int) bool {

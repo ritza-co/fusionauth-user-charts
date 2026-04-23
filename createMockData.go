@@ -1,4 +1,4 @@
-// docker run --init  -it  --rm --platform linux/amd64 --name "app" --network faNetwork -v .:/app -v ./gocache:/go/pkg -v ./buildcache:/root/.cache/go-build -w /app golang:1.25-bookworm sh -c "go fmt 1createMockData.go && go run 1createMockData.go"
+// docker run --init  -it  --rm --platform linux/amd64 --name "app" --network faNetwork -v .:/app -v ./gocache:/go/pkg -v ./buildcache:/root/.cache/go-build -w /app golang:1.25-bookworm sh -c "go fmt createMockData.go && go run createMockData.go"
 
 package main
 

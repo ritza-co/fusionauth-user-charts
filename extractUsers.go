@@ -1,4 +1,4 @@
-// docker run --init  -it  --rm --platform linux/amd64 --name "app" --network faNetwork -v .:/app -v ./gocache:/go/pkg -v ./buildcache:/root/.cache/go-build -w /app golang:1.25-bookworm sh -c "go fmt 3extract.go && go run 3extract.go"
+// docker run --init  -it  --rm --platform linux/amd64 --name "app" --network faNetwork -v .:/app -v ./gocache:/go/pkg -v ./buildcache:/root/.cache/go-build -w /app golang:1.25-bookworm sh -c "go fmt extractUsers.go && go run extractUsers.go"
 
 package main
 
@@ -63,7 +63,9 @@ func getUsersFromFaUsers(faUsers []FaUser) []UserOutput {
 			user.LoginDates = append(user.LoginDates, l.Instant)
 		}
 		sort.Slice(user.LoginDates, func(i, j int) bool { return user.LoginDates[i] < user.LoginDates[j] })
-		checkDates(user, *registration, loginResp)
+		if len(user.LoginDates) > 0 && user.LoginDates[0] == user.RegisteredDate {
+			user.LoginDates = user.LoginDates[1:]
+		}
 		users = append(users, user)
 	}
 	return users
