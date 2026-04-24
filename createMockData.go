@@ -29,14 +29,16 @@ func main() {
 		for j := 0; j < batchSize && (i+j) < numberOfUsersToCreate; j++ {
 			userNum := i + j + 1
 			email := fmt.Sprintf("%d@example.com", userNum)
-			users = append(users, fusionauth.User{
+			u := fusionauth.User{
 				Email: email,
 				Registrations: []fusionauth.UserRegistration{
 					{
 						ApplicationId: applicationId,
 					},
 				},
-			})
+			}
+			u.Password = "password"
+			users = append(users, u)
 		}
 		_, errors, err := client.ImportUsers(fusionauth.ImportRequest{
 			Users:                 users,
@@ -50,7 +52,7 @@ func main() {
 			fmt.Printf("HTTP Error in batch starting at %d: %v\n", i, errors)
 			return
 		}
-		fmt.Printf("Registered (imported) user batch: %d/%d\n", i+len(users), numberOfUsersToCreate)
+		fmt.Printf("Registered (imported) user batch: %d of %d\n", i+len(users), numberOfUsersToCreate)
 	}
 	duration := time.Since(startTime)
 	fmt.Printf("Total time: %s\n", duration)
