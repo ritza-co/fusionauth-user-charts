@@ -5,45 +5,77 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"sort"
+
+	"github.com/FusionAuth/go-client/pkg/fusionauth"
+	"github.com/joho/godotenv"
 )
 
-var applicationId = os.Getenv("APPLICATION_ID")
-var apiKey = os.Getenv("API_KEY")
-var faUrl = os.Getenv("FUSIONAUTH_URL")
-
 func main() {
-	var faUserResp FaUserResponse
-	getFaData("/api/user/search?queryString=*&numberOfResults=999999&startRow=0", &faUserResp)
-	fmt.Printf("Got all %d users\n", len(faUserResp.Users))
-	rawJson, _ := json.MarshalIndent(faUserResp.Users, "", "\t")
+	godotenv.Load()
+	var fusionauthUrl = os.Getenv("FUSIONAUTH_URL")
+	var apiKey = os.Getenv("API_KEY")
+	var applicationId = os.Getenv("APPLICATION_ID")
+	baseURL, _ := url.Parse(fusionauthUrl)
+	client := fusionauth.NewClient(http.DefaultClient, baseURL, apiKey)
+
+	allUsers := []fusionauth.User{}
+	start := 0
+	pageSize := 1000
+	for {
+		searchReq := fusionauth.SearchRequest{
+			Search: fusionauth.UserSearchCriteria{},
+		}
+		searchReq.Search.QueryString = "*"
+		searchReq.Search.StartRow = start
+		searchReq.Search.NumberOfResults = pageSize
+		resp, errors, err := client.SearchUsersByQuery(searchReq)
+		if err != nil {
+			fmt.Println(err.Error())
+			return
+		}
+		if errors != nil {
+			fmt.Printf("httpError: %s\n", *errors)
+			return
+		}
+
+		allUsers = append(allUsers, resp.Users...)
+		fmt.Printf("Extracted %d users (%d total)\n", len(resp.Users), len(allUsers))
+		if len(resp.Users) < pageSize {
+			break
+		}
+		start += pageSize
+	}
+
+	fmt.Printf("Got all %d users\n", len(allUsers))
+	rawJson, _ := json.MarshalIndent(allUsers, "", "\t")
 	os.WriteFile("faUsers.json", rawJson, 0644)
 	fmt.Println("Wrote FA users to faUsers.json")
 
-	extractedUsers := getUsersFromFaUsers(faUserResp.Users)
+	extractedUsers := getUsersFromFaUsers(client, allUsers, applicationId)
 	finalJson, _ := json.MarshalIndent(extractedUsers, "", "\t")
 	os.WriteFile("users.json", finalJson, 0644)
 	fmt.Printf("Wrote %d extracted users to users.json\n", len(extractedUsers))
 }
 
-func getUsersFromFaUsers(faUsers []FaUser) []UserOutput {
+func getUsersFromFaUsers(client *fusionauth.FusionAuthClient, faUsers []fusionauth.User, applicationId string) []UserOutput {
 	var users []UserOutput
 	unverifiedReasons := []string{"Completed", "Implicit", "Pending"}
 	for _, faUser := range faUsers {
-		var identity *FaIdentity
-		for _, i := range faUser.Identities {
-			if i.Primary {
-				identity = &i
+		var identity *fusionauth.UserIdentity
+		for i := range faUser.Identities {
+			if faUser.Identities[i].Primary {
+				identity = &faUser.Identities[i]
 				break
 			}
 		}
-		var registration *FaRegistration
-		for _, r := range faUser.Registrations {
-			if r.ApplicationId == applicationId {
-				registration = &r
+		var registration *fusionauth.UserRegistration
+		for i := range faUser.Registrations {
+			if faUser.Registrations[i].ApplicationId == applicationId {
+				registration = &faUser.Registrations[i]
 				break
 			}
 		}
@@ -53,14 +85,20 @@ func getUsersFromFaUsers(faUsers []FaUser) []UserOutput {
 		user := UserOutput{
 			Id:             faUser.Id,
 			Email:          faUser.Email,
-			IsVerified:     identity.Verified || !contains(unverifiedReasons, identity.VerifiedReason),
+			IsVerified:     identity.Verified || !contains(unverifiedReasons, string(identity.VerifiedReason)),
 			RegisteredDate: registration.InsertInstant,
 			LoginDates:     []int64{},
 		}
-		var loginResp FaLoginResponse
-		getFaData("/api/system/login-record/search?userId="+user.Id+"&startRow=0&numberOfResults=999999", &loginResp)
-		for _, l := range loginResp.Logins {
-			user.LoginDates = append(user.LoginDates, l.Instant)
+		loginSearchReq := fusionauth.LoginRecordSearchRequest{
+			Search: fusionauth.LoginRecordSearchCriteria{
+				UserId: faUser.Id,
+			},
+		}
+		loginResp, _, err := client.SearchLoginRecords(loginSearchReq)
+		if err == nil && loginResp != nil {
+			for _, l := range loginResp.Logins {
+				user.LoginDates = append(user.LoginDates, l.Instant)
+			}
 		}
 		sort.Slice(user.LoginDates, func(i, j int) bool { return user.LoginDates[i] < user.LoginDates[j] })
 		if len(user.LoginDates) > 0 && user.LoginDates[0] == user.RegisteredDate {
@@ -71,40 +109,6 @@ func getUsersFromFaUsers(faUsers []FaUser) []UserOutput {
 	return users
 }
 
-func getFaData(url string, target interface{}) {
-	client := &http.Client{}
-	request, _ := http.NewRequest("GET", faUrl+url, nil)
-	request.Header.Set("Authorization", apiKey)
-	request.Header.Set("Content-Type", "application/json")
-	response, err := client.Do(request)
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
-	defer response.Body.Close()
-	if response.StatusCode < 200 || response.StatusCode >= 300 {
-		fmt.Printf("httpError! status: %d\n", response.StatusCode)
-		return
-	}
-	body, _ := io.ReadAll(response.Body)
-	json.Unmarshal(body, target)
-}
-
-func checkDates(user UserOutput, registration FaRegistration, logins FaLoginResponse) {
-	if len(fmt.Sprintf("%d", registration.InsertInstant)) != 13 {
-		fmt.Println("Date error: FusionAuth returned registration timestamp that doesn't have 13 digits:")
-		fmt.Printf("%+v\n", user)
-		os.Exit(1)
-	}
-	for _, l := range logins.Logins {
-		if len(fmt.Sprintf("%d", l.Instant)) != 13 {
-			fmt.Println("Date error: FusionAuth returned login timestamp that doesn't have 13 digits:")
-			fmt.Printf("%+v\n", user)
-			os.Exit(1)
-		}
-	}
-}
-
 func contains(s []string, str string) bool {
 	for _, v := range s {
 		if v == str {
@@ -112,36 +116,6 @@ func contains(s []string, str string) bool {
 		}
 	}
 	return false
-}
-
-type FaIdentity struct {
-	Primary        bool   `json:"primary"`
-	Verified       bool   `json:"verified"`
-	VerifiedReason string `json:"verifiedReason"`
-}
-
-type FaRegistration struct {
-	ApplicationId string `json:"applicationId"`
-	InsertInstant int64  `json:"insertInstant"`
-}
-
-type FaUser struct {
-	Id            string           `json:"id"`
-	Email         string           `json:"email"`
-	Identities    []FaIdentity     `json:"identities"`
-	Registrations []FaRegistration `json:"registrations"`
-}
-
-type FaUserResponse struct {
-	Users []FaUser `json:"users"`
-}
-
-type FaLogin struct {
-	Instant int64 `json:"instant"`
-}
-
-type FaLoginResponse struct {
-	Logins []FaLogin `json:"logins"`
 }
 
 type UserOutput struct {
