@@ -1,6 +1,6 @@
 # FusionAuth User Charts
 
-A pipeline that creates mock FusionAuth user data, extracts it via the FusionAuth API, and displays user analytics charts in a browser. All scripts are numbered in execution order and run in Docker containers on a shared `faNetwork` with a FusionAuth instance.
+A pipeline that creates mock FusionAuth user data, extracts it via the FusionAuth API, and displays user analytics charts in a browser.
 
 ## Running
 
