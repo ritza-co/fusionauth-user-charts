@@ -2,7 +2,10 @@
 
 A pipeline that creates mock FusionAuth user data, extracts it via the FusionAuth API, and displays user analytics charts in a browser. All scripts are numbered in execution order and run in Docker containers on a shared `faNetwork` with a FusionAuth instance.
 
-## Scripts
+## Running
+
+Run the scripts with Go in the order shown below. The second script needs to be run with PostgreSQL.
+
 
 ### createMockData.go
 Registers 1000 mock users against the FusionAuth API with sequential email addresses (`1@example.com`, `2@example.com`, etc.).
@@ -33,10 +36,3 @@ Reads `users.json` and computes 16 chart datasets covering:
 - Login frequency (unique login days in the past 30 days).
 
 Serves the results as an HTML page on port 7777.
-
-### charts.html
-Single-page dashboard rendered with Chart.js. Displays all 16 charts using data injected by `charts.go`. Includes a retention heatmap via the `chartjs-chart-matrix` plugin.
-
-## Running
-
-Each script includes a Docker run command in its first comment line. Execute them in order (1–4) against a running FusionAuth instance on Docker network `faNetwork`.
