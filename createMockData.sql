@@ -2,8 +2,6 @@
 
 BEGIN;
 
-\set fusionauth_app_id 'e9fdb985-9173-4e01-9d73-ac2d60d1dc8e'
-
 -- delete logins fusionauth creates when registering a user
 DELETE FROM raw_logins WHERE applications_id = :'fusionauth_app_id';
 
