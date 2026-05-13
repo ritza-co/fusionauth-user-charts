@@ -8,7 +8,7 @@ Run the scripts with Go in the order shown below. The second script needs to be 
 
 
 ### createMockData.go
-Registers 1000 mock users against the FusionAuth API with sequential email addresses (`1@example.com`, `2@example.com`, etc.).
+Registers 20 000 mock users against the FusionAuth API with sequential email addresses (`1@example.com`, `2@example.com`, etc.).
 
 ### createMockData.sql
 Runs directly against the FusionAuth PostgreSQL database to make the mock data more realistic:
