@@ -239,6 +239,14 @@ func calculateLoginsPerMonthChart(users []User, startYear int, maxYear int, star
 	return chart
 }
 
+// calculatePercentLoginsPerYearChart computes the yearly active user rate.
+// For each year Y, the value is:
+//
+//	(unique users who logged in at least once during Y) / (total users registered on or before the end of Y) * 100
+//
+// The numerator uses LoginDatesUniqueYearly, so multiple logins by the same user within a year count once.
+// The denominator is cumulative (running total of all users ever registered through the end of the year).
+// The result is the percentage of the entire registered user base that was active that year (i.e. yearly active rate / YAU%).
 func calculatePercentLoginsPerYearChart(users []User, minYear int, maxYear int) SimpleChartFloatData {
 	chart := SimpleChartFloatData{Labels: []string{}, Data: []float64{}}
 	runningVerified, runningUnverified := 0, 0
@@ -254,6 +262,14 @@ func calculatePercentLoginsPerYearChart(users []User, minYear int, maxYear int) 
 	return chart
 }
 
+// calculatePercentLoginsPerMonthChart computes the monthly active user rate (MAU%).
+// For each month M, the value is:
+//
+//	(unique users who logged in at least once during M) / (total users registered on or before the end of M) * 100
+//
+// The numerator uses LoginDatesUniqueMonthly, so multiple logins by the same user within a month count once.
+// The denominator is cumulative (running total of all users ever registered through the end of the month).
+// The result is the percentage of the entire registered user base that was active that month (i.e. MAU%).
 func calculatePercentLoginsPerMonthChart(users []User, startYear int, maxYear int, startMonth time.Month, currentMonth time.Month) SimpleChartFloatData {
 	chart := SimpleChartFloatData{Labels: []string{}, Data: []float64{}}
 	runningVerified, runningUnverified := 0, 0
@@ -526,7 +542,7 @@ func calculateRatio(numerator int, denominator int) float64 {
 	if denominator <= 0 {
 		return 0.0
 	}
-	return float64(numerator) / float64(denominator)
+	return float64(numerator) / float64(denominator) * 100
 }
 
 func getRegistrationCounts(users []User, year int, month int, useMonthly bool) (int, int) {
