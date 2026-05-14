@@ -35,8 +35,8 @@
 
 // ===================================================================
 // Helper functions --------------------------------------------------
-		function getBarChartOptions(title, isStackedBar=true, shouldShowLegend=true, xAxisTitle='') {
-			return {
+		function getBarChartOptions(title, isStackedBar=true, shouldShowLegend=true, xAxisTitle='', isPercent=false) {
+			const options = {
 				responsive: true,
 				plugins: {
 					legend: {display: shouldShowLegend,position: 'bottom',},
@@ -55,6 +55,11 @@
 					}
 				}
 			}
+			if (isPercent) {
+				options.scales.y.ticks = {callback: (value) => value + '%'};
+				options.plugins.tooltip = {callbacks: {label: (context) => context.formattedValue + '%'}};
+			}
+			return options;
 		}
 
 
@@ -190,7 +195,7 @@
 					backgroundColor: 'rgba(75, 192, 192, 0.7)',
 				}]
 			},
-			options: getBarChartOptions('Percent logins per year', false, false)
+			options: getBarChartOptions('Yearly active users (% of total registered)', false, false, '', true)
 		});
 
 // Percent logins per month chart --------------------------------------------------
@@ -203,7 +208,7 @@
 					backgroundColor: 'rgba(75, 192, 192, 0.7)',
 				}]
 			},
-			options: getBarChartOptions('Percent logins per month', false, false)
+			options: getBarChartOptions('Monthly active users (% of total registered)', false, false, '', true)
 		});
 
 // Abandonment per month chart --------------------------------------------------
