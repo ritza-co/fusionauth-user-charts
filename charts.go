@@ -1,5 +1,3 @@
-// docker run --init  -it  --rm --platform linux/amd64 --name "app" -p 7777:7777 -v .:/app -v ./gocache:/go/pkg -v ./buildcache:/root/.cache/go-build -w /app golang:1.25-bookworm sh -c "go fmt charts.go && go run charts.go"
-
 package main
 
 import (
