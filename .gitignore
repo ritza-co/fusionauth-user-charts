@@ -2,3 +2,5 @@ buildcache
 gocache
 faUsers.json
 users.json
+# Added by ggshield
+.cache_ggshield
