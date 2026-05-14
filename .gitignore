@@ -1,5 +1,4 @@
-buildcache
-gocache
+.env
 faUsers.json
 users.json
 charts-output.html
