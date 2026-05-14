@@ -369,27 +369,36 @@ func calculateActivityCohortChart(users []User) ChartData {
 }
 
 func calculateReturningUsersChart(users []User) ChartData {
-	chart := ChartData{Labels: []string{}, VerifiedData: []int{}, UnverifiedData: []int{}}
-	labelMap := make(map[string]int)
+	type bucket struct{ verified, unverified int }
+	counts := make(map[string]*bucket)
 	for _, user := range users {
 		previous := user.RegisteredDate
 		for _, login := range user.LoginDates {
 			if login.Sub(previous).Hours() > 24*365 {
 				label := login.Format("2006-01")
-				if _, exists := labelMap[label]; !exists {
-					chart.Labels = append(chart.Labels, label)
-					sort.Strings(chart.Labels)
-					chart.VerifiedData = make([]int, len(chart.Labels))
-					chart.UnverifiedData = make([]int, len(chart.Labels))
-					for index, labelValue := range chart.Labels {
-						labelMap[labelValue] = index
-					}
+				b, ok := counts[label]
+				if !ok {
+					b = &bucket{}
+					counts[label] = b
 				}
-				index := labelMap[label]
-				incrementChartData(&chart, user.IsVerified, index)
+				if user.IsVerified {
+					b.verified++
+				} else {
+					b.unverified++
+				}
 			}
 			previous = login
 		}
+	}
+	labels := make([]string, 0, len(counts))
+	for label := range counts {
+		labels = append(labels, label)
+	}
+	sort.Strings(labels)
+	chart := ChartData{Labels: labels, VerifiedData: make([]int, len(labels)), UnverifiedData: make([]int, len(labels))}
+	for i, label := range labels {
+		chart.VerifiedData[i] = counts[label].verified
+		chart.UnverifiedData[i] = counts[label].unverified
 	}
 	return chart
 }
