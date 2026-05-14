@@ -22,7 +22,7 @@ func main() {
 	baseURL, _ := url.Parse(fusionauthUrl)
 	client := fusionauth.NewClient(http.DefaultClient, baseURL, apiKey)
 
-	allUsers := extractUsersNew(client)
+	allUsers := extractUsers(client)
 	fmt.Printf("Got all %d users\n", len(allUsers))
 	rawJson, _ := json.MarshalIndent(allUsers, "", "\t")
 	os.WriteFile("faUsers.json", rawJson, 0644)
@@ -34,7 +34,7 @@ func main() {
 	fmt.Printf("Wrote %d extracted users to users.json\n", len(extractedUsers))
 }
 
-func extractUsersNew(client *fusionauth.FusionAuthClient) []fusionauth.User {
+func extractUsers(client *fusionauth.FusionAuthClient) []fusionauth.User {
 	allUsers := []fusionauth.User{}
 	pageSize := 1000
 	nextResults := ""
