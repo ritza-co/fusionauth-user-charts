@@ -80,7 +80,9 @@ func getUsersFromFaUsers(client *fusionauth.FusionAuthClient, faUsers []fusionau
 	unverifiedReasons := []string{"Completed", "Implicit", "Pending"}
 	fmt.Printf("Fetching login records for %d users...\n", len(faUsers))
 	for i, faUser := range faUsers {
-		fmt.Printf("\rFetching login records %d/%d", i+1, len(faUsers))
+		if (i+1)%100 == 0 || i+1 == len(faUsers) {
+			fmt.Printf("\rFetching login records %d/%d", i+1, len(faUsers))
+		}
 		var identity *fusionauth.UserIdentity
 		for i := range faUser.Identities {
 			if faUser.Identities[i].Primary {
