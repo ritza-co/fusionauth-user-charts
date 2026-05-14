@@ -21,8 +21,8 @@ func main() {
 	chartData := getChartData(users)
 	fmt.Println("Charts created")
 	page := getPage(chartData)
-	os.WriteFile("charts.html", []byte(page), 0644)
-	fmt.Println("charts.html written")
+	os.WriteFile("charts-output.html", []byte(page), 0644)
+	fmt.Println("charts-output.html written")
 	http.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
 		fmt.Fprint(writer, page)
 	})
