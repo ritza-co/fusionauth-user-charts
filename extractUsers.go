@@ -22,34 +22,7 @@ func main() {
 	baseURL, _ := url.Parse(fusionauthUrl)
 	client := fusionauth.NewClient(http.DefaultClient, baseURL, apiKey)
 
-	allUsers := []fusionauth.User{}
-	start := 0
-	pageSize := 1000
-	for {
-		searchReq := fusionauth.SearchRequest{
-			Search: fusionauth.UserSearchCriteria{},
-		}
-		searchReq.Search.QueryString = "*"
-		searchReq.Search.StartRow = start
-		searchReq.Search.NumberOfResults = pageSize
-		resp, errors, err := client.SearchUsersByQuery(searchReq)
-		if err != nil {
-			fmt.Println(err.Error())
-			return
-		}
-		if errors != nil {
-			fmt.Printf("httpError: %s\n", *errors)
-			return
-		}
-
-		allUsers = append(allUsers, resp.Users...)
-		fmt.Printf("Extracted %d users (%d total)\n", len(resp.Users), len(allUsers))
-		if len(resp.Users) < pageSize {
-			break
-		}
-		start += pageSize
-	}
-
+	allUsers := extractUsersNew(client)
 	fmt.Printf("Got all %d users\n", len(allUsers))
 	rawJson, _ := json.MarshalIndent(allUsers, "", "\t")
 	os.WriteFile("faUsers.json", rawJson, 0644)
@@ -59,6 +32,47 @@ func main() {
 	finalJson, _ := json.MarshalIndent(extractedUsers, "", "\t")
 	os.WriteFile("users.json", finalJson, 0644)
 	fmt.Printf("Wrote %d extracted users to users.json\n", len(extractedUsers))
+}
+
+func extractUsersNew(client *fusionauth.FusionAuthClient) []fusionauth.User {
+	allUsers := []fusionauth.User{}
+	pageSize := 1000
+	nextResults := ""
+	useNextResults := false
+	startRow := 0
+	for {
+		searchReq := fusionauth.SearchRequest{
+			Search: fusionauth.UserSearchCriteria{},
+		}
+		searchReq.Search.NumberOfResults = pageSize
+		if useNextResults && nextResults != "" {
+			searchReq.Search.NextResults = nextResults
+		} else {
+			searchReq.Search.QueryString = "*"
+			searchReq.Search.StartRow = startRow
+		}
+		resp, errors, err := client.SearchUsersByQuery(searchReq)
+		if err != nil {
+			fmt.Println(err.Error())
+			return allUsers
+		}
+		if errors != nil {
+			fmt.Printf("httpError: %s\n", *errors)
+			return allUsers
+		}
+		allUsers = append(allUsers, resp.Users...)
+		fmt.Printf("Extracted %d users (%d total)\n", len(resp.Users), len(allUsers))
+		if len(resp.Users) < pageSize {
+			break
+		}
+		if resp.NextResults != "" {
+			useNextResults = true
+			nextResults = resp.NextResults
+		} else {
+			startRow += pageSize
+		}
+	}
+	return allUsers
 }
 
 func getUsersFromFaUsers(client *fusionauth.FusionAuthClient, faUsers []fusionauth.User, applicationId string) []UserOutput {
