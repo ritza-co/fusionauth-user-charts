@@ -2,3 +2,4 @@ buildcache
 gocache
 faUsers.json
 users.json
+charts-output.html
