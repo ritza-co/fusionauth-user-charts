@@ -118,39 +118,35 @@ func getChartData(users []User) ChartResult {
 		LoginFrequencyChart:           ChartData{Labels: []string{}, VerifiedData: make([]int, 32), UnverifiedData: make([]int, 32)},
 	}
 	var waitGroup sync.WaitGroup
-	var mutex sync.Mutex
-	runParallel(&waitGroup, &mutex, &result.TotalUsersPerYearChart, func() any { return calculateTotalUsersPerYearChart(users, minYear, maxYear) })
-	runParallel(&waitGroup, &mutex, &result.TotalUsersPerMonthChart, func() any {
+	runParallel(&waitGroup, &result.TotalUsersPerYearChart, func() any { return calculateTotalUsersPerYearChart(users, minYear, maxYear) })
+	runParallel(&waitGroup, &result.TotalUsersPerMonthChart, func() any {
 		return calculateTotalUsersPerMonthChart(users, startYear, maxYear, startMonth, now.Month())
 	})
-	runParallel(&waitGroup, &mutex, &result.NewUsersPerYearChart, func() any { return calculateNewUsersPerYearChart(users, minYear, maxYear) })
-	runParallel(&waitGroup, &mutex, &result.NewUsersPerMonthChart, func() any { return calculateNewUsersPerMonthChart(users, startYear, maxYear, startMonth, now.Month()) })
-	runParallel(&waitGroup, &mutex, &result.UserAgeChart, func() any { return calculateUserAgeChart(users, thisYear, minYear) })
-	runParallel(&waitGroup, &mutex, &result.LoginsPerYearChart, func() any { return calculateLoginsPerYearChart(users, minYear, maxYear) })
-	runParallel(&waitGroup, &mutex, &result.LoginsPerMonthChart, func() any { return calculateLoginsPerMonthChart(users, startYear, maxYear, startMonth, now.Month()) })
-	runParallel(&waitGroup, &mutex, &result.PercentLoginsPerYearChart, func() any { return calculatePercentLoginsPerYearChart(users, minYear, maxYear) })
-	runParallel(&waitGroup, &mutex, &result.PercentLoginsPerMonthChart, func() any {
+	runParallel(&waitGroup, &result.NewUsersPerYearChart, func() any { return calculateNewUsersPerYearChart(users, minYear, maxYear) })
+	runParallel(&waitGroup, &result.NewUsersPerMonthChart, func() any { return calculateNewUsersPerMonthChart(users, startYear, maxYear, startMonth, now.Month()) })
+	runParallel(&waitGroup, &result.UserAgeChart, func() any { return calculateUserAgeChart(users, thisYear, minYear) })
+	runParallel(&waitGroup, &result.LoginsPerYearChart, func() any { return calculateLoginsPerYearChart(users, minYear, maxYear) })
+	runParallel(&waitGroup, &result.LoginsPerMonthChart, func() any { return calculateLoginsPerMonthChart(users, startYear, maxYear, startMonth, now.Month()) })
+	runParallel(&waitGroup, &result.PercentLoginsPerYearChart, func() any { return calculatePercentLoginsPerYearChart(users, minYear, maxYear) })
+	runParallel(&waitGroup, &result.PercentLoginsPerMonthChart, func() any {
 		return calculatePercentLoginsPerMonthChart(users, startYear, maxYear, startMonth, now.Month())
 	})
-	runParallel(&waitGroup, &mutex, &result.AbandonmentPerMonthChart, func() any { return calculateAbandonmentPerMonthChart(users, now) })
-	runParallel(&waitGroup, &mutex, &result.InactiveSixMonthsPerYearChart, func() any { return calculateInactiveSixMonthsPerYearChart(users, minYear, maxYear, now) })
-	runParallel(&waitGroup, &mutex, &result.ActivityCohortChart, func() any { return calculateActivityCohortChart(users) })
-	runParallel(&waitGroup, &mutex, &result.ReturningUsersChart, func() any { return calculateReturningUsersChart(users) })
-	runParallel(&waitGroup, &mutex, &result.RetentionChart, func() any { return calculateRetentionChart(users) })
-	runParallel(&waitGroup, &mutex, &result.FrictionChart, func() any { return calculateFrictionChart(users) })
-	runParallel(&waitGroup, &mutex, &result.LoginFrequencyChart, func() any { return calculateLoginFrequencyChart(users, now) })
+	runParallel(&waitGroup, &result.AbandonmentPerMonthChart, func() any { return calculateAbandonmentPerMonthChart(users, now) })
+	runParallel(&waitGroup, &result.InactiveSixMonthsPerYearChart, func() any { return calculateInactiveSixMonthsPerYearChart(users, minYear, maxYear, now) })
+	runParallel(&waitGroup, &result.ActivityCohortChart, func() any { return calculateActivityCohortChart(users) })
+	runParallel(&waitGroup, &result.ReturningUsersChart, func() any { return calculateReturningUsersChart(users) })
+	runParallel(&waitGroup, &result.RetentionChart, func() any { return calculateRetentionChart(users) })
+	runParallel(&waitGroup, &result.FrictionChart, func() any { return calculateFrictionChart(users) })
+	runParallel(&waitGroup, &result.LoginFrequencyChart, func() any { return calculateLoginFrequencyChart(users, now) })
 	waitGroup.Wait()
 	return result
 }
 
-func runParallel[T any](waitGroup *sync.WaitGroup, mutex *sync.Mutex, target *T, task func() any) {
+func runParallel[T any](waitGroup *sync.WaitGroup, target *T, task func() any) {
 	waitGroup.Add(1)
 	go func() {
 		defer waitGroup.Done()
-		val := task().(T)
-		mutex.Lock()
-		*target = val
-		mutex.Unlock()
+		*target = task().(T)
 	}()
 }
 
