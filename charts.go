@@ -18,11 +18,8 @@ func main() {
 	users := getUsersFromFile()
 	chartData := getChartData(users)
 	fmt.Println("Charts created")
-	page := getPage(chartData)
-	os.WriteFile("charts.html", []byte(page), 0644)
-	fmt.Println("charts.html written")
 	http.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
-		fmt.Fprint(writer, page)
+		fmt.Fprint(writer, getPage(chartData))
 	})
 	fmt.Println("Server listening at http://0.0.0.0:7777")
 	http.ListenAndServe("0.0.0.0:7777", nil)
@@ -87,7 +84,7 @@ func addDeduplicatedLoginDates(users []User) {
 }
 
 func getPage(chartData ChartResult) string {
-	htmlBytes, _ := os.ReadFile("charts.template.html")
+	htmlBytes, _ := os.ReadFile("charts.html")
 	html := string(htmlBytes)
 	chartJson, _ := json.Marshal(chartData)
 	return strings.Replace(html, "{{CHARTDATA}}", string(chartJson), 1)
