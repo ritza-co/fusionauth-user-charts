@@ -280,7 +280,7 @@ func calculatePercentLoginsPerMonthChart(users []User, startYear int, maxYear in
 }
 
 func calculateAbandonmentPerMonthChart(users []User, now time.Time) ChartData {
-	chart := ChartData{Labels: []string{"1", "2", "6", "12"}, VerifiedData: make([]int, 4), UnverifiedData: make([]int, 4)}
+	chart := ChartData{Labels: []string{"1+", "2+", "6+", "12+"}, VerifiedData: make([]int, 4), UnverifiedData: make([]int, 4)}
 	for _, user := range users {
 		if len(user.LoginDates) == 0 {
 			continue
