@@ -87,7 +87,7 @@ func addDeduplicatedLoginDates(users []User) {
 }
 
 func getPage(chartData ChartResult) string {
-	htmlBytes, _ := os.ReadFile("charts.html")
+	htmlBytes, _ := os.ReadFile("charts.template.html")
 	html := string(htmlBytes)
 	chartJson, _ := json.Marshal(chartData)
 	return strings.Replace(html, "{{CHARTDATA}}", string(chartJson), 1)
