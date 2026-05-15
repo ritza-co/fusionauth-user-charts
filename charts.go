@@ -18,8 +18,8 @@ func main() {
 	users := getUsersFromFile()
 	chartData := getChartData(users)
 	fmt.Println("Charts created")
-	page := getPage(chartData)
 	http.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
+		page := getPage(chartData)
 		fmt.Fprint(writer, page)
 	})
 	fmt.Println("Server listening at http://0.0.0.0:7777")
