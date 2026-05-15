@@ -1,5 +1,7 @@
 BEGIN;
 
+SELECT setseed(0.42);
+
 -- delete logins fusionauth creates when registering a user
 DELETE FROM raw_logins WHERE applications_id = :'fusionauth_app_id';
 
