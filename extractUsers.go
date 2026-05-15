@@ -105,7 +105,8 @@ func getUsersFromFaUsers(client *fusionauth.FusionAuthClient, faUsers []fusionau
 		}
 		loginSearchReq := fusionauth.LoginRecordSearchRequest{
 			Search: fusionauth.LoginRecordSearchCriteria{
-				UserId: faUser.Id,
+				UserId:        faUser.Id,
+				ApplicationId: applicationId,
 			},
 		}
 		loginResp, _, err := client.SearchLoginRecords(loginSearchReq)
