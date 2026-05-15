@@ -11,7 +11,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
-const numberOfUsersToCreate = 1000
+const numberOfUsersToCreate = 20000
 
 func main() {
 	godotenv.Load()
