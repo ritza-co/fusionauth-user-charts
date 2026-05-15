@@ -1,5 +1,3 @@
-// docker run --init  -it  --rm --platform linux/amd64 --name "app" --network faNetwork -v .:/app -v ./gocache:/go/pkg -v ./buildcache:/root/.cache/go-build -w /app golang:1.25-bookworm sh -c "go fmt createMockData.go && go run createMockData.go"
-
 package main
 
 import (
@@ -13,7 +11,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
-const numberOfUsersToCreate = 20000
+const numberOfUsersToCreate = 1000
 
 func main() {
 	godotenv.Load()

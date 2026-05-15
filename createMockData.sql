@@ -1,8 +1,4 @@
--- docker run --init -it --rm --platform linux/amd64 --name "app" --network faNetwork -v .:/app -w /app postgres:16-bookworm sh -c "PGPASSWORD=postgres psql -h faDb -U postgres -d fusionauth -f createMockData.sql"
-
 BEGIN;
-
-\set fusionauth_app_id 'e9fdb985-9173-4e01-9d73-ac2d60d1dc8e'
 
 -- delete logins fusionauth creates when registering a user
 DELETE FROM raw_logins WHERE applications_id = :'fusionauth_app_id';

@@ -1,5 +1,3 @@
-// docker run --init  -it  --rm --platform linux/amd64 --name "app" --network faNetwork -v .:/app -v ./gocache:/go/pkg -v ./buildcache:/root/.cache/go-build -w /app golang:1.25-bookworm sh -c "go fmt extractUsers.go && go run extractUsers.go"
-
 package main
 
 import (
@@ -78,7 +76,11 @@ func extractUsers(client *fusionauth.FusionAuthClient) []fusionauth.User {
 func getUsersFromFaUsers(client *fusionauth.FusionAuthClient, faUsers []fusionauth.User, applicationId string) []UserOutput {
 	var users []UserOutput
 	unverifiedReasons := []string{"Completed", "Implicit", "Pending"}
-	for _, faUser := range faUsers {
+	fmt.Printf("Fetching login records for %d users...\n", len(faUsers))
+	for i, faUser := range faUsers {
+		if (i+1)%100 == 0 || i+1 == len(faUsers) {
+			fmt.Printf("\rFetching login records %d/%d", i+1, len(faUsers))
+		}
 		var identity *fusionauth.UserIdentity
 		for i := range faUser.Identities {
 			if faUser.Identities[i].Primary {
@@ -121,6 +123,7 @@ func getUsersFromFaUsers(client *fusionauth.FusionAuthClient, faUsers []fusionau
 		}
 		users = append(users, user)
 	}
+	fmt.Println()
 	return users
 }
 
