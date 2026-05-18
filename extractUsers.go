@@ -27,6 +27,7 @@ func main() {
 	fmt.Println("Wrote FA users to faUsers.json")
 
 	extractedUsers := getUsersFromFaUsers(client, allUsers, applicationId)
+
 	finalJson, _ := json.MarshalIndent(extractedUsers, "", "\t")
 	os.WriteFile("users.json", finalJson, 0644)
 	fmt.Printf("Wrote %d extracted users to users.json\n", len(extractedUsers))
@@ -36,18 +37,15 @@ func extractUsers(client *fusionauth.FusionAuthClient) []fusionauth.User {
 	allUsers := []fusionauth.User{}
 	pageSize := 1000
 	nextResults := ""
-	useNextResults := false
-	startRow := 0
 	for {
 		searchReq := fusionauth.SearchRequest{
 			Search: fusionauth.UserSearchCriteria{},
 		}
 		searchReq.Search.NumberOfResults = pageSize
-		if useNextResults && nextResults != "" {
+		if nextResults != "" {
 			searchReq.Search.NextResults = nextResults
 		} else {
 			searchReq.Search.QueryString = "*"
-			searchReq.Search.StartRow = startRow
 		}
 		resp, errors, err := client.SearchUsersByQuery(searchReq)
 		if err != nil {
@@ -63,24 +61,20 @@ func extractUsers(client *fusionauth.FusionAuthClient) []fusionauth.User {
 		if len(resp.Users) < pageSize {
 			break
 		}
-		if resp.NextResults != "" {
-			useNextResults = true
-			nextResults = resp.NextResults
-		} else {
-			startRow += pageSize
+		if resp.NextResults == "" {
+			fmt.Println("Warning: no nextResults token returned; cannot paginate past 10,000 users")
+			break
 		}
+		nextResults = resp.NextResults
 	}
 	return allUsers
 }
 
 func getUsersFromFaUsers(client *fusionauth.FusionAuthClient, faUsers []fusionauth.User, applicationId string) []UserOutput {
-	var users []UserOutput
 	unverifiedReasons := []string{"Completed", "Implicit", "Pending"}
-	fmt.Printf("Fetching login records for %d users...\n", len(faUsers))
-	for i, faUser := range faUsers {
-		if (i+1)%100 == 0 || i+1 == len(faUsers) {
-			fmt.Printf("\rFetching login records %d/%d", i+1, len(faUsers))
-		}
+
+	byId := make(map[string]*UserOutput)
+	for _, faUser := range faUsers {
 		var identity *fusionauth.UserIdentity
 		for i := range faUser.Identities {
 			if faUser.Identities[i].Primary {
@@ -95,35 +89,58 @@ func getUsersFromFaUsers(client *fusionauth.FusionAuthClient, faUsers []fusionau
 				break
 			}
 		}
-		if identity == nil || registration == nil {
+		if registration == nil {
 			continue
 		}
-		user := UserOutput{
+		isVerified := faUser.Verified
+		if identity != nil {
+			isVerified = identity.Verified || !contains(unverifiedReasons, string(identity.VerifiedReason))
+		}
+		u := &UserOutput{
 			Id:             faUser.Id,
 			Email:          faUser.Email,
-			IsVerified:     identity.Verified || !contains(unverifiedReasons, string(identity.VerifiedReason)),
+			IsVerified:     isVerified,
 			RegisteredDate: registration.InsertInstant,
 			LoginDates:     []int64{},
 		}
-		loginSearchReq := fusionauth.LoginRecordSearchRequest{
+		byId[faUser.Id] = u
+	}
+
+	const pageSize = 10000
+	fmt.Printf("Fetching login records for %d users (bulk by application)...\n", len(byId))
+	for startRow := 0; ; startRow += pageSize {
+		req := fusionauth.LoginRecordSearchRequest{
 			Search: fusionauth.LoginRecordSearchCriteria{
-				UserId:        faUser.Id,
 				ApplicationId: applicationId,
+				BaseSearchCriteria: fusionauth.BaseSearchCriteria{
+					NumberOfResults: pageSize,
+					StartRow:        startRow,
+				},
 			},
 		}
-		loginResp, _, err := client.SearchLoginRecords(loginSearchReq)
-		if err == nil && loginResp != nil {
-			for _, l := range loginResp.Logins {
-				user.LoginDates = append(user.LoginDates, l.Instant)
+		resp, _, err := client.SearchLoginRecords(req)
+		if err != nil || resp == nil {
+			break
+		}
+		fmt.Printf("  page startRow=%d: got %d records\n", startRow, len(resp.Logins))
+		for _, l := range resp.Logins {
+			if u, ok := byId[l.UserId]; ok {
+				u.LoginDates = append(u.LoginDates, l.Instant)
 			}
 		}
-		sort.Slice(user.LoginDates, func(i, j int) bool { return user.LoginDates[i] < user.LoginDates[j] })
-		if len(user.LoginDates) > 0 && user.LoginDates[0] == user.RegisteredDate {
-			user.LoginDates = user.LoginDates[1:]
+		if len(resp.Logins) < pageSize {
+			break
 		}
-		users = append(users, user)
 	}
-	fmt.Println()
+
+	users := make([]UserOutput, 0, len(byId))
+	for _, u := range byId {
+		sort.Slice(u.LoginDates, func(i, j int) bool { return u.LoginDates[i] < u.LoginDates[j] })
+		if len(u.LoginDates) > 0 && u.LoginDates[0] == u.RegisteredDate {
+			u.LoginDates = u.LoginDates[1:]
+		}
+		users = append(users, *u)
+	}
 	return users
 }
 
