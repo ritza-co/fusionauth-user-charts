@@ -9,6 +9,7 @@ import (
 	"sort"
 
 	"github.com/FusionAuth/go-client/pkg/fusionauth"
+	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 )
 
@@ -22,9 +23,6 @@ func main() {
 
 	allUsers := extractUsers(client)
 	fmt.Printf("Got all %d users\n", len(allUsers))
-	rawJson, _ := json.MarshalIndent(allUsers, "", "\t")
-	os.WriteFile("faUsers.json", rawJson, 0644)
-	fmt.Println("Wrote FA users to faUsers.json")
 
 	extractedUsers := getUsersFromFaUsers(client, allUsers, applicationId)
 
@@ -97,8 +95,8 @@ func getUsersFromFaUsers(client *fusionauth.FusionAuthClient, faUsers []fusionau
 			isVerified = identity.Verified || !contains(unverifiedReasons, string(identity.VerifiedReason))
 		}
 		u := &UserOutput{
-			Id:             faUser.Id,
-			Email:          faUser.Email,
+			Id:             uuid.New().String(),
+			Email:          uuid.New().String() + "@anon.invalid",
 			IsVerified:     isVerified,
 			RegisteredDate: registration.InsertInstant,
 			LoginDates:     []int64{},
