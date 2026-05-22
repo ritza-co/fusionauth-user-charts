@@ -18,16 +18,14 @@ Runs directly against the FusionAuth PostgreSQL database to make the mock data m
 - Removes logins for unverified users.
 
 ### extractUsers.go
-Queries the FusionAuth API to fetch all users and their login records, then writes two JSON files:
-- `faUsers.json` — raw API response.
-- `users.json` — simplified extract with id, email, verification status, registration date, and sorted login dates.
+Queries the FusionAuth API to fetch all users and their login records, then writes `users.json` — a simplified extract with id, email, verification status, registration date, and sorted login dates. Each user's id and email are replaced with random UUIDs before writing, so the file contains no personally identifiable information.
 
 ### charts.go
 Reads `users.json` and computes 16 chart datasets covering:
 - Total and new users (yearly/monthly), split by verified/unverified.
 - User account age distribution.
 - Login counts and login-to-user ratios (yearly/monthly).
-- Abandonment (users inactive for 1/2/6/12 months).
+- Abandonment (users inactive for 1+, 2+, 6+, or 12+ months).
 - Users inactive for 6+ months per year.
 - Activity cohorts (0 / ≤4 / >4 logins in the past year).
 - Returning users (back after 1+ year absent).
